@@ -100,7 +100,7 @@ function onCanvasPress(event) {
 
   const selectedPiece = board[row][col];
 
-  if (selectedPiece) {
+  if (selectedPiece && !draggingPiece.type) {
     draggingPiece.type = selectedPiece;
     draggingPiece.originRow = row;
     draggingPiece.originCol = col;
