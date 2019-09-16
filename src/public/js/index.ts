@@ -96,27 +96,21 @@ function onCanvasPress(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
-  if (board.turn === movement.Piece.BLACK) {
-    const nextMove = cpu.nextMove(board);
-    if (nextMove) movement.performMove(board, nextMove);
+  const mcp = {
+    x: event.clientX - canvas.offsetLeft,
+    y: event.clientY - canvas.offsetTop
+  }
+
+  const mbp = getBoardPositionForCanvasPosition(mcp);
+
+  const selectedCell = board.cells[mbp.row][mbp.col];
+
+  if (!isCellEmpty(selectedCell) && !isDraggingPiece()) {
+    draggingPiece.piece = selectedCell.piece;
+    draggingPiece.origin = { row: mbp.row, col: mbp.col };
+    board.cells[mbp.row][mbp.col] = { piece: movement.Piece.NONE };
     drawBoard();
-  } else {
-    const mcp = {
-      x: event.clientX - canvas.offsetLeft,
-      y: event.clientY - canvas.offsetTop
-    }
-
-    const mbp = getBoardPositionForCanvasPosition(mcp);
-
-    const selectedCell = board.cells[mbp.row][mbp.col];
-
-    if (!isCellEmpty(selectedCell) && !isDraggingPiece()) {
-      draggingPiece.piece = selectedCell.piece;
-      draggingPiece.origin = { row: mbp.row, col: mbp.col };
-      board.cells[mbp.row][mbp.col] = { piece: movement.Piece.NONE };
-      drawBoard();
-      drawPiece(mcp, draggingPiece.piece);
-    }
+    drawPiece(mcp, draggingPiece.piece);
   }
 }
 
@@ -132,13 +126,17 @@ function onCanvasRelease(event: MouseEvent): void {
   const mbp = getBoardPositionForCanvasPosition(mcp);
 
   if (isDraggingPiece()) {
+    board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
     if (movement.isValidMove(board, draggingPiece.origin, mbp, draggingPiece.piece)) {
-      board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
       movement.performMove(board, { src: draggingPiece.origin, dest: mbp });
-    } else {
-      board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
     }
     resetDraggingPiece();
+    drawBoard();
+  }
+
+  if (board.turn === movement.Piece.BLACK) {
+    const nextMove = cpu.nextMove(board);
+    if (nextMove) movement.performMove(board, nextMove);
     drawBoard();
   }
 }

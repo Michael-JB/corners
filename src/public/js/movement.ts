@@ -79,7 +79,7 @@ export function isValidMove(board: Board, src: BoardPosition, dest: BoardPositio
     else if (dc === 0) validHop = !isBoardPositionEmpty(board, { row: src.row + dr / 2, col: src.col });
   }
 
-  return (distance === 1 || validHop) && isBoardPositionEmpty(board, dest);
+  return board.turn === piece && (distance === 1 || validHop) && isBoardPositionEmpty(board, dest);
 }
 
 export function getValidMoves(board: Board, src: BoardPosition): Move[] {
