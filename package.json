@@ -4,10 +4,11 @@
   "description": "Play Corners",
   "scripts": {
     "start": "npm run serve",
-    "serve": "node dist/server.js",
-    "build": "npm run copy-static-files && npm run build-ts",
-    "build-ts": "tsc",
-    "copy-static-files": "ts-node copyStaticFiles.ts",
+    "serve": "node dist/server/server.js",
+    "build:public": "tsc -p ./tsconfig.public.json",
+    "build:server": "tsc -p ./tsconfig.server.json",
+    "build": "npm run copy-static-files && npm run build:public && npm run build:server",
+    "copy-static-files": "node copyStaticFiles.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Michael B",
@@ -16,11 +17,9 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "@types/cpx": "^1.5.0",
     "@types/express": "^4.17.1",
     "@types/node": "^12.7.5",
     "cpx": "^1.5.0",
-    "ts-node": "^8.4.1",
     "typescript": "^3.6.3"
   }
 }
