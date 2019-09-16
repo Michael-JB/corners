@@ -31,7 +31,7 @@ const draggingPiece: {
   piece: Piece.NONE
 };
 
-function initBoard() {
+function initBoard(): void {
   const rows = 3, cols = 4;
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -41,7 +41,7 @@ function initBoard() {
   }
 }
 
-function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string) {
+function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
   const ctx = canvas.getContext('2d');
   ctx.beginPath();
   ctx.arc(cp.x, cp.y, radius, 0, 2 * Math.PI, false);
@@ -52,7 +52,7 @@ function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: st
   ctx.stroke();
 }
 
-function drawPiece(cp: CanvasPosition, piece: Piece) {
+function drawPiece(cp: CanvasPosition, piece: Piece): void {
   const w = canvas.width / boardSize;
   if (piece === Piece.WHITE) {
     drawCircle(cp, w / 3, '#F0F0F0', '#1E1E1E');
@@ -61,7 +61,7 @@ function drawPiece(cp: CanvasPosition, piece: Piece) {
   }
 }
 
-function drawBoard() {
+function drawBoard(): void {
   const ctx = canvas.getContext('2d');
 
   board.forEach((row, r) => {
@@ -76,19 +76,19 @@ function drawBoard() {
   });
 }
 
-function manhattenDistance(src: BoardPosition, dest: BoardPosition) {
+function manhattenDistance(src: BoardPosition, dest: BoardPosition): number {
   return Math.abs(src.col - dest.col) + Math.abs(src.row - dest.row);
 }
 
-function isBoardPositionEmpty(bp: BoardPosition) {
+function isBoardPositionEmpty(bp: BoardPosition): boolean {
   return board[bp.row][bp.col].piece === Piece.NONE;
 }
 
-function isCellEmpty(cell: Cell) {
+function isCellEmpty(cell: Cell): boolean {
   return cell.piece === Piece.NONE;
 }
 
-function isValidMove(src: BoardPosition, dest: BoardPosition, piece: Piece) {
+function isValidMove(src: BoardPosition, dest: BoardPosition, piece: Piece): boolean {
   const dr = dest.row - src.row, dc = dest.col - src.col;
   const distance = manhattenDistance(src, dest);
   let validHop = false;
@@ -108,16 +108,16 @@ function getBoardPositionForCanvasPosition(cp: CanvasPosition): BoardPosition {
   };
 }
 
-function resetDraggingPiece() {
+function resetDraggingPiece(): void {
   draggingPiece.piece = Piece.NONE;
   draggingPiece.origin = { row: -1, col: -1 };
 }
 
-function isDraggingPiece() {
+function isDraggingPiece(): boolean {
   return draggingPiece.piece != Piece.NONE;
 }
 
-function onCanvasPress(event: MouseEvent) {
+function onCanvasPress(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -139,7 +139,7 @@ function onCanvasPress(event: MouseEvent) {
   }
 }
 
-function onCanvasRelease(event: MouseEvent) {
+function onCanvasRelease(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -161,7 +161,7 @@ function onCanvasRelease(event: MouseEvent) {
   }
 }
 
-function onCanvasMouseMove(event: MouseEvent) {
+function onCanvasMouseMove(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -177,14 +177,15 @@ function onCanvasMouseMove(event: MouseEvent) {
   }
 }
 
-function attachEventListeners() {
+function attachEventListeners(): void {
   // Mouse events
   canvas.addEventListener('mousedown', onCanvasPress);
   canvas.addEventListener('mouseup', onCanvasRelease);
   canvas.addEventListener('mousemove', onCanvasMouseMove);
+  // TODO: Touch events
 }
 
-function start() {
+function start(): void {
   canvas = <HTMLCanvasElement> document.getElementById('board');
   attachEventListeners();
   initBoard();
