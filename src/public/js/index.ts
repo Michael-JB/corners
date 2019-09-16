@@ -10,10 +10,12 @@ const boardSize = 8;
 const board: movement.Board = {
   size: boardSize,
   cells: Array(boardSize).fill([]).map(_ => Array(boardSize).fill({ piece: movement.Piece.NONE })),
-  turn: movement.Piece.WHITE
+  turn: movement.Piece.WHITE,
+  lastMove: undefined
 }
 
 let canvas: HTMLCanvasElement;
+let endTurnButton: HTMLButtonElement;
 
 const draggingPiece: {
   origin: movement.BoardPosition;
@@ -157,16 +159,25 @@ function onCanvasMouseMove(event: MouseEvent): void {
   }
 }
 
+function onEndTurnButtonClick(event: Event) {
+  movement.tryEndTurn(board);
+}
+
 function attachEventListeners(): void {
+  endTurnButton.addEventListener('click', onEndTurnButtonClick);
+
   // Mouse events
   canvas.addEventListener('mousedown', onCanvasPress);
   canvas.addEventListener('mouseup', onCanvasRelease);
   canvas.addEventListener('mousemove', onCanvasMouseMove);
+
+
   // TODO: Touch events
 }
 
 function start(): void {
   canvas = <HTMLCanvasElement> document.getElementById('board');
+  endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
   attachEventListeners();
   initBoard();
   drawBoard();

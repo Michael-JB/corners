@@ -17,6 +17,7 @@ export interface Board {
   size: number;
   cells: Cell[][];
   turn: Piece;
+  lastMove: Move | undefined;
 }
 
 export interface Move {
@@ -57,6 +58,13 @@ export function performMove(board: Board, move: Move): void {
   board.cells[move.src.row][move.src.col] = { piece: Piece.NONE };
   board.cells[move.dest.row][move.dest.col] = { piece };
   board.turn = board.turn === Piece.WHITE ? Piece.BLACK : Piece.WHITE;
+  board.lastMove = move;
+}
+
+export function tryEndTurn(board: Board): void {
+  if (board.lastMove && board.cells[board.lastMove.dest.row][board.lastMove.dest.col].piece === board.turn) {
+    board.turn = board.turn === Piece.WHITE ? Piece.BLACK : Piece.WHITE;
+  }
 }
 
 export function getBoardPositionsForPiece(board: Board, piece: Piece): BoardPosition[] {

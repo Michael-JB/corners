@@ -11,6 +11,17 @@ body {
   margin-top: 5vh;
 }
 
+#controls-container {
+  width: 100%;
+  text-align: center;
+  margin-top: 1vh;
+}
+
+.btn {
+  padding: 5px 8px;
+  font-size: 16px;
+}
+
 canvas {
   display: inline;
 }
