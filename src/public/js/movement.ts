@@ -117,7 +117,8 @@ export function isValidHop(board: Board, move: Move, piece: Piece): boolean {
     const lastMoveDistance = manhattenDistance(board, board.lastMove.src, board.lastMove.dest);
     const isFirstMove = getPieceForBoardPosition(board, board.lastMove.dest) != piece;
     const isChain = lastMoveDistance === 2 && isBoardPositionEqual(board.lastMove.dest, move.src);
-    canHop = isFirstMove || isChain;
+    const isRepeat = isBoardPositionEqual(board.lastMove.dest, move.src) && isBoardPositionEqual(board.lastMove.src, move.dest);
+    canHop = !isRepeat && (isFirstMove || isChain);
   } else {
     canHop = true;
   }
