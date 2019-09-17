@@ -10,10 +10,9 @@ const boardSize = 8;
 const board: movement.Board = {
   size: boardSize,
   cells: Array(boardSize).fill([]).map(_ => Array(boardSize).fill({ piece: movement.Piece.NONE })),
-  turn: movement.Piece.WHITE,
+  turn: movement.playerPiece,
   lastMove: undefined
 }
-const player = movement.Piece.WHITE;
 
 let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
@@ -107,12 +106,16 @@ function isCellEmpty(cell: movement.Cell): boolean {
   return cell.piece === movement.Piece.NONE;
 }
 
-function onPlayerMove(move: movement.Move, piece: movement.Piece): void {
-  if (movement.isValidMove(board, move, piece)) {
+function onPlayerPieceMove(move: movement.Move): void {
+  if (movement.isValidMove(board, move, movement.playerPiece)) {
     movement.performMove(board, move);
+    drawBoard();
+    if (board.turn != movement.playerPiece) {
+      onPlayerPieceTurnEnd();
+    }
+  } else {
+    drawBoard();
   }
-  drawBoard();
-  cpuMove();
 }
 
 function onCanvasPress(event: MouseEvent): void {
@@ -149,12 +152,14 @@ function onCanvasRelease(event: MouseEvent): void {
   const mbp = getBoardPositionForCanvasPosition(mcp);
 
   if (isDraggingPiece()) {
+    const moveSrc = draggingPiece.origin, movePiece = draggingPiece.piece;
     returnDraggingPiece();
-    if (draggingPiece.piece === player && !movement.isBoardPositionEqual(draggingPiece.origin, mbp)) {
-      onPlayerMove({ src: draggingPiece.origin, dest: mbp }, draggingPiece.piece);
-    }
     resetDraggingPiece();
-    drawBoard();
+    if (movePiece === movement.playerPiece && !movement.isBoardPositionEqual(moveSrc, mbp)) {
+      onPlayerPieceMove({ src: moveSrc, dest: mbp });
+    } else {
+      drawBoard();
+    }
   }
 }
 
@@ -183,22 +188,31 @@ function enableBoardInteraction(enable: boolean): void {
 }
 
 async function onEndTurnButtonClick(event: Event) {
-  movement.tryEndTurn(board);
+  if (board.turn === movement.playerPiece) {
+    if (movement.tryEndTurn(board)) {
+      await onPlayerPieceTurnEnd();
+    }
+  }
+}
+
+async function onPlayerPieceTurnEnd() {
   await cpuMove();
 }
 
 async function cpuMove() {
-  if (board.turn === movement.Piece.BLACK) {
-    enableEndTurnButton(false);
-    enableBoardInteraction(false);
-    await sleep(500);
-    const nextMove = cpu.nextMove(board);
-    if (nextMove) movement.performMove(board, nextMove); // TODO handle no next move
+  enableEndTurnButton(false);
+  enableBoardInteraction(false);
+  await sleep(400);
+  const nextMove = cpu.nextMove(board);
+  if (nextMove) {
+    movement.performMove(board, nextMove); // TODO handle no next move
     movement.tryEndTurn(board);
-    drawBoard();
-    enableBoardInteraction(true);
-    enableEndTurnButton(true);
+  } else {
+    // End game...
   }
+  drawBoard();
+  enableBoardInteraction(true);
+  enableEndTurnButton(true);
 }
 
 function sleep(duration: number) {

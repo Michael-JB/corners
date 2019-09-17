@@ -25,6 +25,9 @@ export interface Move {
   dest: BoardPosition;
 }
 
+export const playerPiece = Piece.WHITE;
+export const cpuPiece = Piece.BLACK;
+
 export function manhattenDistance(board: Board, src: BoardPosition, dest: BoardPosition): number {
   return Math.abs(src.col - dest.col) + Math.abs(src.row - dest.row);
 }
@@ -83,10 +86,12 @@ export function performMove(board: Board, move: Move): void {
   }
 }
 
-export function tryEndTurn(board: Board): void {
+export function tryEndTurn(board: Board): boolean {
+  const initialTurn = board.turn;
   if (board.lastMove && getPieceForBoardPosition(board, board.lastMove.dest) === board.turn) {
     board.turn = board.turn === Piece.WHITE ? Piece.BLACK : Piece.WHITE;
   }
+  return initialTurn != board.turn;
 }
 
 export function getBoardPositionsForPiece(board: Board, piece: Piece): BoardPosition[] {
