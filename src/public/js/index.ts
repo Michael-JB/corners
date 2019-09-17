@@ -178,6 +178,10 @@ function enableEndTurnButton(enable: boolean): void {
   endTurnButton.disabled = !enable;
 }
 
+function enableBoardInteraction(enable: boolean): void {
+  canvas.style.pointerEvents = enable ? 'auto' : 'none';
+}
+
 async function onEndTurnButtonClick(event: Event) {
   movement.tryEndTurn(board);
   await cpuMove();
@@ -186,11 +190,13 @@ async function onEndTurnButtonClick(event: Event) {
 async function cpuMove() {
   if (board.turn === movement.Piece.BLACK) {
     enableEndTurnButton(false);
+    enableBoardInteraction(false);
     await sleep(500);
     const nextMove = cpu.nextMove(board);
     if (nextMove) movement.performMove(board, nextMove); // TODO handle no next move
     movement.tryEndTurn(board);
     drawBoard();
+    enableBoardInteraction(true);
     enableEndTurnButton(true);
   }
 }
