@@ -2,38 +2,28 @@ import * as movement from "./movement.js";
 import * as cpu from "./cpu.js";
 
 interface CanvasPosition {
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
 }
 
 const boardSize = 8;
 const board: movement.Board = {
   size: boardSize,
-  cells: Array(boardSize).fill([]).map(_ => Array(boardSize).fill({ piece: movement.Piece.NONE })),
+  cells: Array(boardSize).fill([]).map(_ => Array(boardSize).fill(undefined).map(_ => ({ piece: movement.Piece.NONE }))),
   turn: movement.playerPiece,
-  lastMove: undefined
+  moveStack: []
 }
 
 let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
 
 const draggingPiece: {
-  origin: movement.BoardPosition;
+  origin: movement.BoardPosition | null;
   piece: movement.Piece
 } = {
-  origin: { row: -1, col: -1 },
+  origin: null,
   piece: movement.Piece.NONE
 };
-
-function initBoard(): void {
-  const rows = 3, cols = 4;
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      board.cells[i + boardSize - rows][j] = { piece: movement.Piece.WHITE };
-      board.cells[i][j + boardSize - cols] = { piece: movement.Piece.BLACK };
-    }
-  }
-}
 
 function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
   const ctx = canvas.getContext('2d');
@@ -59,12 +49,13 @@ function drawPiece(cp: CanvasPosition, piece: movement.Piece): void {
 
 function drawBoard(): void {
   const ctx = canvas.getContext('2d');
+  const lastMove = movement.peek(board.moveStack);
 
   if (ctx) {
     board.cells.forEach((row, r) => {
       row.forEach((cell, c) => {
-        const isCellLastSrc = board.lastMove && movement.isBoardPositionEqual(board.lastMove.src, { row: r, col: c });
-        const isCellLastDest = board.lastMove && movement.isBoardPositionEqual(board.lastMove.dest, { row: r, col: c });
+        const isCellLastSrc = lastMove && movement.isBoardPositionEqual(lastMove.src, { row: r, col: c });
+        const isCellLastDest = lastMove && movement.isBoardPositionEqual(lastMove.dest, { row: r, col: c });
 
         if (isCellLastSrc || isCellLastDest) {
           ctx.fillStyle = (r + c) % 2 ? '#B5BD89' : '#D1D9B0';
@@ -90,7 +81,9 @@ function getBoardPositionForCanvasPosition(cp: CanvasPosition): movement.BoardPo
 }
 
 function returnDraggingPiece(): void {
-  board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
+  if (draggingPiece.origin) {
+    board.cells[draggingPiece.origin.row][draggingPiece.origin.col].piece = draggingPiece.piece;
+  }
 }
 
 function resetDraggingPiece(): void {
@@ -99,7 +92,7 @@ function resetDraggingPiece(): void {
 }
 
 function isDraggingPiece(): boolean {
-  return draggingPiece.piece != movement.Piece.NONE;
+  return draggingPiece.origin != null && draggingPiece.piece != movement.Piece.NONE;
 }
 
 function isCellEmpty(cell: movement.Cell): boolean {
@@ -153,12 +146,14 @@ function onCanvasRelease(event: MouseEvent): void {
 
   if (isDraggingPiece()) {
     const moveSrc = draggingPiece.origin, movePiece = draggingPiece.piece;
-    returnDraggingPiece();
-    resetDraggingPiece();
-    if (movePiece === movement.playerPiece && !movement.isBoardPositionEqual(moveSrc, mbp)) {
-      onPlayerPieceMove({ src: moveSrc, dest: mbp });
-    } else {
-      drawBoard();
+    if (moveSrc != null) {
+      returnDraggingPiece();
+      resetDraggingPiece();
+      if (movePiece === movement.playerPiece && !movement.isBoardPositionEqual(moveSrc, mbp)) {
+        onPlayerPieceMove({ src: moveSrc, dest: mbp, piece: movePiece });
+      } else {
+        drawBoard();
+      }
     }
   }
 }
@@ -204,7 +199,7 @@ async function cpuMove() {
   enableBoardInteraction(false);
   await sleep(400);
   const nextMove = cpu.nextMove(board);
-  if (nextMove) {
+  if (nextMove != null) {
     movement.performMove(board, nextMove); // TODO handle no next move
     movement.tryEndTurn(board);
   } else {
@@ -234,7 +229,7 @@ function start(): void {
   canvas = <HTMLCanvasElement> document.getElementById('board');
   endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
   attachEventListeners();
-  initBoard();
+  movement.initBoard(board);
   drawBoard();
 }
 
