@@ -13,6 +13,7 @@ const board: movement.Board = {
   turn: movement.Piece.WHITE,
   lastMove: undefined
 }
+const player = movement.Piece.WHITE;
 
 let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
@@ -63,7 +64,15 @@ function drawBoard(): void {
   if (ctx) {
     board.cells.forEach((row, r) => {
       row.forEach((cell, c) => {
-        ctx.fillStyle = (r + c) % 2 ? '#5D737E' : '#CCDBDC';
+        const isCellLastSrc = board.lastMove && movement.isBoardPositionEqual(board.lastMove.src, { row: r, col: c });
+        const isCellLastDest = board.lastMove && movement.isBoardPositionEqual(board.lastMove.dest, { row: r, col: c });
+
+        if (isCellLastSrc || isCellLastDest) {
+          ctx.fillStyle = (r + c) % 2 ? '#B5BD89' : '#D1D9B0';
+        } else {
+          ctx.fillStyle = (r + c) % 2 ? '#5D737E' : '#CCDBDC';
+        }
+
         const w = canvas.width / row.length, h = canvas.height / board.cells.length;
         const x = c * w, y = r * h;
         ctx.fillRect(x, y, w, h);
@@ -81,6 +90,10 @@ function getBoardPositionForCanvasPosition(cp: CanvasPosition): movement.BoardPo
   };
 }
 
+function returnDraggingPiece(): void {
+  board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
+}
+
 function resetDraggingPiece(): void {
   draggingPiece.piece = movement.Piece.NONE;
   draggingPiece.origin = { row: -1, col: -1 };
@@ -92,6 +105,14 @@ function isDraggingPiece(): boolean {
 
 function isCellEmpty(cell: movement.Cell): boolean {
   return cell.piece === movement.Piece.NONE;
+}
+
+function onPlayerMove(move: movement.Move, piece: movement.Piece): void {
+  if (movement.isValidMove(board, move, piece)) {
+    movement.performMove(board, move);
+  }
+  drawBoard();
+  cpuMove();
 }
 
 function onCanvasPress(event: MouseEvent): void {
@@ -128,17 +149,11 @@ function onCanvasRelease(event: MouseEvent): void {
   const mbp = getBoardPositionForCanvasPosition(mcp);
 
   if (isDraggingPiece()) {
-    board.cells[draggingPiece.origin.row][draggingPiece.origin.col] = { piece: draggingPiece.piece };
-    if (movement.isValidMove(board, draggingPiece.origin, mbp, draggingPiece.piece)) {
-      movement.performMove(board, { src: draggingPiece.origin, dest: mbp });
+    returnDraggingPiece();
+    if (draggingPiece.piece === player && !movement.isBoardPositionEqual(draggingPiece.origin, mbp)) {
+      onPlayerMove({ src: draggingPiece.origin, dest: mbp }, draggingPiece.piece);
     }
     resetDraggingPiece();
-    drawBoard();
-  }
-
-  if (board.turn === movement.Piece.BLACK) {
-    const nextMove = cpu.nextMove(board);
-    if (nextMove) movement.performMove(board, nextMove);
     drawBoard();
   }
 }
@@ -159,8 +174,29 @@ function onCanvasMouseMove(event: MouseEvent): void {
   }
 }
 
-function onEndTurnButtonClick(event: Event) {
+function enableEndTurnButton(enable: boolean): void {
+  endTurnButton.disabled = !enable;
+}
+
+async function onEndTurnButtonClick(event: Event) {
   movement.tryEndTurn(board);
+  await cpuMove();
+}
+
+async function cpuMove() {
+  if (board.turn === movement.Piece.BLACK) {
+    enableEndTurnButton(false);
+    await sleep(500);
+    const nextMove = cpu.nextMove(board);
+    if (nextMove) movement.performMove(board, nextMove); // TODO handle no next move
+    movement.tryEndTurn(board);
+    drawBoard();
+    enableEndTurnButton(true);
+  }
+}
+
+function sleep(duration: number) {
+  return new Promise(resolve => setTimeout(resolve, duration));
 }
 
 function attachEventListeners(): void {
@@ -170,7 +206,6 @@ function attachEventListeners(): void {
   canvas.addEventListener('mousedown', onCanvasPress);
   canvas.addEventListener('mouseup', onCanvasRelease);
   canvas.addEventListener('mousemove', onCanvasMouseMove);
-
 
   // TODO: Touch events
 }

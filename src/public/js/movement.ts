@@ -37,32 +37,54 @@ export function isBoardPositionInBoard(board: Board, bp: BoardPosition): boolean
   return bp.row >= 0 && bp.row < board.size && bp.col >= 0 && bp.col < board.size;
 }
 
-export function getNeighbouringBoardPositions(board: Board, bp: BoardPosition): BoardPosition[] {
-  const neighbours = [];
+export function isBoardPositionEqual(bp1: BoardPosition, bp2: BoardPosition): boolean {
+  return bp1.row === bp2.row && bp1.col === bp2.col;
+}
 
-  const north = { row: bp.row - 1, col: bp.col };
-  const east = { row: bp.row, col: bp.col + 1 };
-  const south = { row: bp.row + 1, col: bp.col };
-  const west = { row: bp.row, col: bp.col - 1 };
+export function getPieceForBoardPosition(board: Board, bp: BoardPosition): Piece {
+  return board.cells[bp.row][bp.col].piece;
+}
 
-  if (isBoardPositionInBoard(board, north)) neighbours.push(north);
-  if (isBoardPositionInBoard(board, east)) neighbours.push(east);
-  if (isBoardPositionInBoard(board, south)) neighbours.push(south);
-  if (isBoardPositionInBoard(board, west)) neighbours.push(west);
+export function getNeighbours(board: Board, bp: BoardPosition): BoardPosition[] {
+  const neighbours = [
+    { row: bp.row - 1, col: bp.col }, // North
+    { row: bp.row, col: bp.col + 1 }, // East
+    { row: bp.row + 1, col: bp.col }, // South
+    { row: bp.row, col: bp.col - 1 }, // West
+  ];
 
-  return neighbours;
+  return neighbours.filter(neighbour => isBoardPositionInBoard(board, neighbour));
+}
+
+export function getExtendedNeighbours(board: Board, bp: BoardPosition): BoardPosition[] {
+  const neighbours = [
+    { row: bp.row - 2, col: bp.col }, // North
+    { row: bp.row, col: bp.col + 2 }, // East
+    { row: bp.row + 2, col: bp.col }, // South
+    { row: bp.row, col: bp.col - 2 }, // West
+  ];
+
+  return neighbours.filter(neighbour => isBoardPositionInBoard(board, neighbour));
+}
+
+export function getCandidateMoves(board: Board, src: BoardPosition): Move[] {
+  const neighbours = getNeighbours(board, src);
+  const extendedNeighbours = getExtendedNeighbours(board, src);
+  return neighbours.concat(extendedNeighbours).map(bp => ({ src, dest: bp }));
 }
 
 export function performMove(board: Board, move: Move): void {
   const piece = board.cells[move.src.row][move.src.col].piece;
   board.cells[move.src.row][move.src.col] = { piece: Piece.NONE };
   board.cells[move.dest.row][move.dest.col] = { piece };
-  board.turn = board.turn === Piece.WHITE ? Piece.BLACK : Piece.WHITE;
   board.lastMove = move;
+  if (getValidMoves(board, move.dest).length === 0) {
+    tryEndTurn(board);
+  }
 }
 
 export function tryEndTurn(board: Board): void {
-  if (board.lastMove && board.cells[board.lastMove.dest.row][board.lastMove.dest.col].piece === board.turn) {
+  if (board.lastMove && getPieceForBoardPosition(board, board.lastMove.dest) === board.turn) {
     board.turn = board.turn === Piece.WHITE ? Piece.BLACK : Piece.WHITE;
   }
 }
@@ -77,54 +99,42 @@ export function getBoardPositionsForPiece(board: Board, piece: Piece): BoardPosi
   return bps;
 }
 
-export function isValidMove(board: Board, src: BoardPosition, dest: BoardPosition, piece: Piece): boolean {
-  const dr = dest.row - src.row, dc = dest.col - src.col;
-  const distance = manhattenDistance(board, src, dest);
-  let validHop = false;
+export function isValidMove(board: Board, move: Move, piece: Piece): boolean {
+  const distance = manhattenDistance(board, move.src, move.dest);
+  const validHop = isValidHop(board, move, piece);
+  const isFirstMove = !board.lastMove || getPieceForBoardPosition(board, board.lastMove.dest) != piece;
 
-  if (distance === 2) {
-    if (dr === 0) validHop = !isBoardPositionEmpty(board, { row: src.row, col: src.col + dc / 2 });
-    else if (dc === 0) validHop = !isBoardPositionEmpty(board, { row: src.row + dr / 2, col: src.col });
+  return board.turn === piece && ((isFirstMove && distance === 1) || validHop) && isBoardPositionEmpty(board, move.dest);
+}
+
+export function isValidHop(board: Board, move: Move, piece: Piece): boolean {
+  const dr = move.dest.row - move.src.row, dc = move.dest.col - move.src.col;
+  const distance = manhattenDistance(board, move.src, move.dest);
+  let legalHop = false;
+  let canHop = false;
+
+  if (board.lastMove) {
+    const lastMoveDistance = manhattenDistance(board, board.lastMove.src, board.lastMove.dest);
+    const isFirstMove = getPieceForBoardPosition(board, board.lastMove.dest) != piece;
+    const isChain = lastMoveDistance === 2 && isBoardPositionEqual(board.lastMove.dest, move.src);
+    canHop = isFirstMove || isChain;
+  } else {
+    canHop = true;
   }
 
-  return board.turn === piece && (distance === 1 || validHop) && isBoardPositionEmpty(board, dest);
+  if (distance === 2) {
+    if (dr === 0) legalHop = !isBoardPositionEmpty(board, { row: move.src.row, col: move.src.col + dc / 2 });
+    else if (dc === 0) legalHop = !isBoardPositionEmpty(board, { row: move.src.row + dr / 2, col: move.src.col });
+  }
+
+  return canHop && legalHop && isBoardPositionEmpty(board, move.dest);
 }
 
 export function getValidMoves(board: Board, src: BoardPosition): Move[] {
   if (!isBoardPositionEmpty(board, src)) {
-    let validMoves: Move[] = [];
-    const neighbours = getNeighbouringBoardPositions(board, src);
+    const candidateMoves = getCandidateMoves(board, src);
 
-    neighbours.forEach(neighbour => {
-      if (isBoardPositionEmpty(board, neighbour)) {
-        validMoves.push({ src, dest: neighbour });
-      }
-    });
-
-    const immediateHops = getHopMoves(board, src);
-    if (immediateHops.length > 0) {
-      validMoves = validMoves.concat(immediateHops);
-    }
-
+    const validMoves = candidateMoves.filter(mv => isValidMove(board, mv, getPieceForBoardPosition(board, src)));
     return validMoves;
-  } else return [];
-}
-
-export function getHopMoves(board: Board, src: BoardPosition): Move[] {
-  if (!isBoardPositionEmpty(board, src)) {
-    const validHops: Move[] = [];
-    const neighbours = getNeighbouringBoardPositions(board, src);
-
-    neighbours.forEach(neighbour => {
-      if (!isBoardPositionEmpty(board, neighbour)) {
-        const hopbp = getNeighbouringBoardPositions(board, neighbour).filter(bp => (bp.col === src.col) != (bp.row === src.row));
-        if (hopbp.length > 0) {
-          if (isBoardPositionEmpty(board, hopbp[0])) {
-            validHops.push({ src, dest: hopbp[0] });
-          }
-        }
-      }
-    });
-    return validHops;
   } else return [];
 }
