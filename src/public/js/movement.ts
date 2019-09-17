@@ -109,7 +109,7 @@ export function initBoard(board: Board): void {
     }
   }
   board.moveStack = [];
-  board.turn = playerPiece;
+  board.turn = Piece.WHITE;
 }
 
 export function performMove(board: Board, move: Move): void {

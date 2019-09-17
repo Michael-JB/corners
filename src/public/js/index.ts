@@ -10,12 +10,13 @@ const boardSize = 8;
 const board: movement.Board = {
   size: boardSize,
   cells: Array(boardSize).fill([]).map(_ => Array(boardSize).fill(undefined).map(_ => ({ piece: movement.Piece.NONE }))),
-  turn: movement.playerPiece,
+  turn: movement.Piece.WHITE,
   moveStack: []
 }
 
 let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
+let newGameButton: HTMLButtonElement;
 
 const draggingPiece: {
   origin: movement.BoardPosition | null;
@@ -190,6 +191,10 @@ async function onEndTurnButtonClick(event: Event) {
   }
 }
 
+function onNewGameButtonClick(event: Event) {
+  newGame();
+}
+
 async function onPlayerPieceTurnEnd() {
   await cpuMove();
 }
@@ -216,6 +221,7 @@ function sleep(duration: number) {
 
 function attachEventListeners(): void {
   endTurnButton.addEventListener('click', onEndTurnButtonClick);
+  newGameButton.addEventListener('click', onNewGameButtonClick);
 
   // Mouse events
   canvas.addEventListener('mousedown', onCanvasPress);
@@ -225,12 +231,20 @@ function attachEventListeners(): void {
   // TODO: Touch events
 }
 
+function newGame(): void {
+  movement.initBoard(board);
+  drawBoard();
+  if (board.turn === movement.cpuPiece) {
+    cpuMove();
+  }
+}
+
 function start(): void {
   canvas = <HTMLCanvasElement> document.getElementById('board');
   endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
+  newGameButton = <HTMLButtonElement> document.getElementById('btn-new-game');
   attachEventListeners();
-  movement.initBoard(board);
-  drawBoard();
+  newGame();
 }
 
 window.onload = start;
