@@ -203,12 +203,17 @@ async function cpuMove() {
   enableEndTurnButton(false);
   enableBoardInteraction(false);
   await sleep(400);
-  const nextMove = cpu.nextMove(board);
-  if (nextMove != null) {
-    movement.performMove(board, nextMove); // TODO handle no next move
+  const nextMoves = cpu.nextMoves(board);
+  if (nextMoves.length > 0) {
+    for (const move of nextMoves) {
+      movement.performMove(board, move);
+      drawBoard();
+      await sleep(400);
+    }
     movement.tryEndTurn(board);
   } else {
     // End game...
+    console.log('End game...');
   }
   drawBoard();
   enableBoardInteraction(true);

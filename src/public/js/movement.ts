@@ -112,11 +112,11 @@ export function initBoard(board: Board): void {
   board.turn = Piece.WHITE;
 }
 
-export function performMove(board: Board, move: Move): void {
+export function performMove(board: Board, move: Move, autoEnd: boolean = true): void {
   board.cells[move.src.row][move.src.col].piece = Piece.NONE;
   board.cells[move.dest.row][move.dest.col].piece = move.piece;
   board.moveStack.push(move);
-  if (getValidMoves(board, move.dest, move.piece).length === 0) {
+  if (autoEnd && getValidMoves(board, move.dest, move.piece).length === 0) {
     tryEndTurn(board);
   }
 }
@@ -177,8 +177,47 @@ export function isValidHop(board: Board, move: Move, piece: Piece): boolean {
 export function getValidMoves(board: Board, src: BoardPosition, piece: Piece): Move[] {
   if (!isBoardPositionEmpty(board, src)) {
     const candidateMoves = getCandidateMoves(board, src, piece);
-
     const validMoves = candidateMoves.filter(mv => isValidMove(board, mv, getPieceForBoardPosition(board, src)));
     return validMoves;
   } else return [];
+}
+
+export function getValidMovesFull(board: Board, src: BoardPosition, piece: Piece): Move[][] {
+  let validChains: Move[][] = [];
+  const validMoves = getValidMoves(board, src, piece);
+
+  validMoves.forEach(move => {
+    validChains.push([move]);
+
+    const newBoard = cloneBoard(board);
+    performMove(newBoard, move, false);
+
+    const nextMoves = getValidMovesFull(newBoard, move.dest, move.piece);
+    const prepended = nextMoves.map(nextMove => {
+      nextMove.unshift(move);
+      return nextMove;
+    });
+    validChains = validChains.concat(prepended);
+  });
+
+  return validChains;
+}
+
+export function cloneBoard(board: Board): Board {
+  let newBoard: Board = {
+    ...board,
+    cells: Array(board.size).fill([]).map(_ => Array(board.size).fill(undefined).map(_ => ({ piece: Piece.NONE }))),
+    moveStack: []
+  }
+
+  // Populate cells
+  for (let r = 0; r < board.size; r++) {
+    for (let c = 0; c < board.size; c++) {
+      newBoard.cells[r][c] = { piece: board.cells[r][c].piece };
+    }
+  }
+
+  board.moveStack.forEach(move => newBoard.moveStack.push(move))
+
+  return newBoard;
 }
