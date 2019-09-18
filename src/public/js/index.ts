@@ -6,6 +6,14 @@ interface CanvasPosition {
   readonly y: number;
 }
 
+const lightSquareColour = '#5D737E';
+const lightSquareHighlightColour = '#B5BD89';
+const darkSquareColour = '#CCDBDC';
+const darkSquareHighlightColour = '#D1D9B0';
+const whitePieceColour = '#F0F0F0';
+const blackPieceColour = '#3C3C3C';
+const pieceBorderColour = '#1E1E1E';
+
 const boardSize = 8;
 const board: movement.Board = {
   size: boardSize,
@@ -13,11 +21,6 @@ const board: movement.Board = {
   turn: movement.Piece.WHITE,
   moveStack: []
 }
-
-let canvas: HTMLCanvasElement;
-let endTurnButton: HTMLButtonElement;
-let newGameButton: HTMLButtonElement;
-
 const draggingPiece: {
   origin: movement.BoardPosition | null;
   piece: movement.Piece
@@ -25,6 +28,11 @@ const draggingPiece: {
   origin: null,
   piece: movement.Piece.NONE
 };
+
+let canvas: HTMLCanvasElement;
+let endTurnButton: HTMLButtonElement;
+let newGameButton: HTMLButtonElement;
+
 
 function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
   const ctx = canvas.getContext('2d');
@@ -42,9 +50,9 @@ function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: st
 function drawPiece(cp: CanvasPosition, piece: movement.Piece): void {
   const w = canvas.width / boardSize;
   if (piece === movement.Piece.WHITE) {
-    drawCircle(cp, w / 3, '#F0F0F0', '#1E1E1E');
+    drawCircle(cp, w / 3, whitePieceColour, pieceBorderColour);
   } else if (piece === movement.Piece.BLACK) {
-    drawCircle(cp, w / 3, '#3C3C3C', '#1E1E1E');
+    drawCircle(cp, w / 3, blackPieceColour, pieceBorderColour);
   }
 }
 
@@ -59,14 +67,18 @@ function drawBoard(): void {
         const isCellLastDest = lastMove && movement.isBoardPositionEqual(lastMove.dest, { row: r, col: c });
 
         if (isCellLastSrc || isCellLastDest) {
-          ctx.fillStyle = (r + c) % 2 ? '#B5BD89' : '#D1D9B0';
+          ctx.fillStyle = (r + c) % 2 ? lightSquareHighlightColour : darkSquareHighlightColour;
         } else {
-          ctx.fillStyle = (r + c) % 2 ? '#5D737E' : '#CCDBDC';
+          ctx.fillStyle = (r + c) % 2 ? lightSquareColour : darkSquareColour;
         }
 
         const w = canvas.width / row.length, h = canvas.height / board.cells.length;
         const x = c * w, y = r * h;
         ctx.fillRect(x, y, w, h);
+
+        ctx.font = '14px Courier New';
+        ctx.fillStyle = (r + c) % 2 ? darkSquareColour : lightSquareColour;
+        ctx.fillText(`${board.size - r}${String.fromCharCode(65 + c)}`, x + 4, y + h - 4);
 
         drawPiece({ x: x + w / 2, y: y + h / 2 }, cell.piece);
       });
@@ -107,6 +119,7 @@ function onPlayerPieceMove(move: movement.Move): void {
     if (board.turn != movement.playerPiece) {
       onPlayerPieceTurnEnd();
     }
+    checkForWinner();
   } else {
     drawBoard();
   }
@@ -199,16 +212,33 @@ async function onPlayerPieceTurnEnd() {
   await cpuMove();
 }
 
+function checkForWinner() {
+  const winner = movement.getGameWinner(board);
+  if (winner != null) {
+    let message;
+    switch (winner) {
+      case movement.playerPiece:
+        message = "Player wins";
+        break;
+      case movement.cpuPiece:
+        message = "CPU wins";
+        break;
+    }
+    drawBoard();
+    alert(message);
+    newGame();
+  }
+}
+
 async function cpuMove() {
   enableEndTurnButton(false);
   enableBoardInteraction(false);
-  await sleep(400);
   const nextMoves = cpu.nextMoves(board);
   if (nextMoves.length > 0) {
     for (const move of nextMoves) {
+      await sleep(400);
       movement.performMove(board, move);
       drawBoard();
-      await sleep(400);
     }
     movement.tryEndTurn(board);
   } else {
@@ -216,6 +246,7 @@ async function cpuMove() {
     console.log('End game...');
   }
   drawBoard();
+  checkForWinner();
   enableBoardInteraction(true);
   enableEndTurnButton(true);
 }

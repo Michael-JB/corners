@@ -107,12 +107,11 @@ export function initBoard(board: Board): void {
   for (let r = 0; r < board.size; r++) {
     for (let c = 0; c < board.size; c++) {
       let cell = { piece: Piece.NONE };
-      if (r >= (board.size - rows) && c < cols) cell.piece = playerPiece;
-      else if (c >= (board.size - cols) && r < rows) cell.piece = cpuPiece;
+      if (r >= (board.size - rows) && c < cols) cell.piece = Piece.WHITE;
+      else if (c >= (board.size - cols) && r < rows) cell.piece = Piece.BLACK;
       board.cells[r][c] = cell;
     }
   }
-
   board.moveStack = [];
   board.turn = Piece.WHITE;
 }
@@ -141,6 +140,17 @@ export function tryEndTurn(board: Board): boolean {
   }
   return initialTurn != board.turn;
 }
+
+export function getGameWinner(board: Board): Piece | null {
+  const whiteBps = getBoardPositionsForPiece(board, Piece.WHITE);
+  const blackBps = getBoardPositionsForPiece(board, Piece.BLACK);
+
+  if (blackBps.every(bp => bp.row >= 5 && bp.col <= 3)) return Piece.BLACK;
+  if (whiteBps.every(bp => bp.row <= 2 && bp.col >= 4)) return Piece.WHITE;
+
+  return null;
+}
+
 
 export function getBoardPositionsForPiece(board: Board, piece: Piece): BoardPosition[] {
   const bps: BoardPosition[] = [];

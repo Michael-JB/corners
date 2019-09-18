@@ -42,6 +42,7 @@ function minimiseAvgDistMove(board: movement.Board): movement.Move[] {
       return cur.dist < acc.dist ? cur : acc;
     }));
     const bestMove = bestPieceMoves.reduce((acc, cur) => cur.dist < acc.dist ? cur : acc);
+    console.log(bestMove.dist);
     return bestMove.moves;
   }
   return [];
