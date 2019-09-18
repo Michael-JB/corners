@@ -238,6 +238,7 @@ function attachEventListeners(): void {
 
 function newGame(): void {
   movement.initBoard(board);
+  cpu.onStart(board);
   drawBoard();
   if (board.turn === movement.cpuPiece) {
     cpuMove();

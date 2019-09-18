@@ -29,8 +29,12 @@ export interface Move {
 export const playerPiece = Piece.WHITE;
 export const cpuPiece = Piece.BLACK;
 
-export function manhattenDistance(board: Board, src: BoardPosition, dest: BoardPosition): number {
+export function manhattenDistance(src: BoardPosition, dest: BoardPosition): number {
   return Math.abs(src.col - dest.col) + Math.abs(src.row - dest.row);
+}
+
+export function euclideanDistance(src: BoardPosition, dest: BoardPosition): number {
+  return Math.hypot(src.col - dest.col, src.row - dest.row);
 }
 
 export function isBoardPositionEmpty(board: Board, bp: BoardPosition): boolean {
@@ -108,8 +112,16 @@ export function initBoard(board: Board): void {
       board.cells[r][c] = cell;
     }
   }
+
   board.moveStack = [];
   board.turn = Piece.WHITE;
+}
+
+export function getAveragePosition(board: Board, piece: Piece): BoardPosition {
+  const bps = getBoardPositionsForPiece(board, piece);
+  const total = bps.reduce((acc, cur) => ({ row: acc.row + cur.row, col: acc.col + cur.col }));
+  const average = { row: total.row / bps.length, col: total.col / bps.length };
+  return average;
 }
 
 export function performMove(board: Board, move: Move, autoEnd: boolean = true): void {
@@ -142,7 +154,7 @@ export function getBoardPositionsForPiece(board: Board, piece: Piece): BoardPosi
 
 export function isValidMove(board: Board, move: Move, piece: Piece): boolean {
   const lastMove = peek(board.moveStack);
-  const distance = manhattenDistance(board, move.src, move.dest);
+  const distance = manhattenDistance(move.src, move.dest);
   const validHop = isValidHop(board, move, piece);
   const isFirstMove = !lastMove || lastMove.piece != piece;
 
@@ -152,12 +164,12 @@ export function isValidMove(board: Board, move: Move, piece: Piece): boolean {
 export function isValidHop(board: Board, move: Move, piece: Piece): boolean {
   const lastMove = peek(board.moveStack);
   const dr = move.dest.row - move.src.row, dc = move.dest.col - move.src.col;
-  const distance = manhattenDistance(board, move.src, move.dest);
+  const distance = manhattenDistance(move.src, move.dest);
   let legalHop = false;
   let canHop = false;
 
   if (lastMove) {
-    const lastMoveDistance = manhattenDistance(board, lastMove.src, lastMove.dest);
+    const lastMoveDistance = manhattenDistance(lastMove.src, lastMove.dest);
     const isFirstMove = getPieceForBoardPosition(board, lastMove.dest) != piece;
     const isChain = lastMoveDistance === 2 && isBoardPositionEqual(lastMove.dest, move.src);
     const createsCycle = getMoveStackChain(board).some(mv => isBoardPositionEqual(mv.src, move.dest));
