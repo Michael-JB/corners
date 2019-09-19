@@ -19,9 +19,35 @@ body {
 
 .btn {
   padding: 5px 8px;
+  margin: 0px 4px;
   font-size: 16px;
+  color:#FFFFFF;
+  background-color:#667E8A;
+  border: 1px solid #5C727D;
+  border-radius: 4px;
+  transition: all ease 0.3s;
 }
 
-canvas {
+.btn:hover {
+	background-color:#5C727D;
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #7F9CAA;
+  background-color: #5C727D;
+}
+
+.btn:active {
+	background-color: #4A5B63;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+#board {
   display: inline;
+  touch-action: none;
+  border-radius: 4px;
 }

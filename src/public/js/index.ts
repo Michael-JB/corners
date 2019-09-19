@@ -6,10 +6,10 @@ interface CanvasPosition {
   readonly y: number;
 }
 
-const lightSquareColour = '#5D737E';
-const lightSquareHighlightColour = '#B5BD89';
-const darkSquareColour = '#CCDBDC';
-const darkSquareHighlightColour = '#D1D9B0';
+const lightSquareColour = '#CCDBDC';
+const lightSquareHighlightColour = '#D1D9B0';
+const darkSquareColour = '#5D737E';
+const darkSquareHighlightColour = '#B5BD89';
 const whitePieceColour = '#F0F0F0';
 const blackPieceColour = '#3C3C3C';
 const pieceBorderColour = '#1E1E1E';
@@ -59,25 +59,28 @@ function drawPiece(cp: CanvasPosition, piece: movement.Piece): void {
 function drawBoard(): void {
   const ctx = canvas.getContext('2d');
   const lastMove = movement.peek(board.moveStack);
+  const canvasWidth = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 
   if (ctx) {
+    ctx.canvas.width = canvasWidth;
+    ctx.canvas.height = canvasWidth;
     board.cells.forEach((row, r) => {
       row.forEach((cell, c) => {
         const isCellLastSrc = lastMove && movement.isBoardPositionEqual(lastMove.src, { row: r, col: c });
         const isCellLastDest = lastMove && movement.isBoardPositionEqual(lastMove.dest, { row: r, col: c });
 
         if (isCellLastSrc || isCellLastDest) {
-          ctx.fillStyle = (r + c) % 2 ? lightSquareHighlightColour : darkSquareHighlightColour;
+          ctx.fillStyle = (r + c) % 2 ? darkSquareHighlightColour: lightSquareHighlightColour;
         } else {
-          ctx.fillStyle = (r + c) % 2 ? lightSquareColour : darkSquareColour;
+          ctx.fillStyle = (r + c) % 2 ? darkSquareColour : lightSquareColour;
         }
 
         const w = canvas.width / row.length, h = canvas.height / board.cells.length;
         const x = c * w, y = r * h;
         ctx.fillRect(x, y, w, h);
 
-        ctx.font = '14px Courier New';
-        ctx.fillStyle = (r + c) % 2 ? darkSquareColour : lightSquareColour;
+        ctx.font = `${ctx.canvas.width / 50}px Courier New`;
+        ctx.fillStyle = (r + c) % 2 ? lightSquareColour : darkSquareColour;
         ctx.fillText(`${board.size - r}${String.fromCharCode(65 + c)}`, x + 4, y + h - 4);
 
         drawPiece({ x: x + w / 2, y: y + h / 2 }, cell.piece);
@@ -125,7 +128,7 @@ function onPlayerPieceMove(move: movement.Move): void {
   }
 }
 
-function onCanvasPress(event: MouseEvent): void {
+function onCanvasPointerPress(event: PointerEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -147,7 +150,7 @@ function onCanvasPress(event: MouseEvent): void {
   }
 }
 
-function onCanvasRelease(event: MouseEvent): void {
+function onCanvasPointerRelease(event: PointerEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -172,7 +175,7 @@ function onCanvasRelease(event: MouseEvent): void {
   }
 }
 
-function onCanvasMouseMove(event: MouseEvent): void {
+function onCanvasPointerMove(event: PointerEvent): void {
   event.preventDefault();
   event.stopPropagation();
 
@@ -190,6 +193,10 @@ function onCanvasMouseMove(event: MouseEvent): void {
 
 function enableEndTurnButton(enable: boolean): void {
   endTurnButton.disabled = !enable;
+}
+
+function enableNewGameButton(enable: boolean): void {
+  newGameButton.disabled = !enable;
 }
 
 function enableBoardInteraction(enable: boolean): void {
@@ -232,6 +239,7 @@ function checkForWinner() {
 
 async function cpuMove() {
   enableEndTurnButton(false);
+  enableNewGameButton(false);
   enableBoardInteraction(false);
   const nextMoves = cpu.nextMoves(board);
   if (nextMoves.length > 0) {
@@ -248,6 +256,7 @@ async function cpuMove() {
   drawBoard();
   checkForWinner();
   enableBoardInteraction(true);
+  enableNewGameButton(true);
   enableEndTurnButton(true);
 }
 
@@ -259,12 +268,9 @@ function attachEventListeners(): void {
   endTurnButton.addEventListener('click', onEndTurnButtonClick);
   newGameButton.addEventListener('click', onNewGameButtonClick);
 
-  // Mouse events
-  canvas.addEventListener('mousedown', onCanvasPress);
-  canvas.addEventListener('mouseup', onCanvasRelease);
-  canvas.addEventListener('mousemove', onCanvasMouseMove);
-
-  // TODO: Touch events
+  canvas.addEventListener('pointerdown', onCanvasPointerPress);
+  canvas.addEventListener('pointerup', onCanvasPointerRelease);
+  canvas.addEventListener('pointermove', onCanvasPointerMove);
 }
 
 function newGame(): void {
@@ -285,3 +291,4 @@ function start(): void {
 }
 
 window.onload = start;
+window.onresize = drawBoard;
