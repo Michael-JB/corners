@@ -11,6 +11,10 @@
     "copy-static-files": "node copyStaticFiles.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Michael-JB/corners.git"
+  },
   "author": "Michael B",
   "license": "MIT",
   "dependencies": {
