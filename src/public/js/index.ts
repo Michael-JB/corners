@@ -119,10 +119,10 @@ function onPlayerPieceMove(move: movement.Move): void {
   if (movement.isValidMove(board, move, movement.playerPiece)) {
     movement.performMove(board, move);
     drawBoard();
+    checkForWinner();
     if (board.turn != movement.playerPiece) {
       onPlayerPieceTurnEnd();
     }
-    checkForWinner();
   } else {
     drawBoard();
   }
