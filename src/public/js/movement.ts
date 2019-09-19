@@ -29,7 +29,7 @@ export interface Move {
 export const playerPiece = Piece.WHITE;
 export const cpuPiece = Piece.BLACK;
 
-export const gameRules = `The goal of the game is to recreate your opponents starting position. On your turn, you can only move a single piece. This piece can either move to an adjacent square, after which your turn ends, or it can hop over an individual adjacent piece. You can perform as many hops as you like on your turn.`;
+export const gameRules = `The goal of the game is to recreate your opponents starting position with your pieces. On your turn, you can only move a single piece. This piece can either move to an adjacent square, after which your turn ends, or it can hop over an individual adjacent piece. You can perform as many hops as you like on your turn.`;
 
 export function getPieceName(piece: Piece): string {
   switch(piece) {
