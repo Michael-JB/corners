@@ -41,7 +41,7 @@ function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: st
     ctx.arc(cp.x, cp.y, radius, 0, 2 * Math.PI, false);
     ctx.fillStyle = fill;
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = radius / 15;
     ctx.fill();
     ctx.stroke();
   }
@@ -70,7 +70,7 @@ function drawBoard(): void {
         const isCellLastDest = lastMove && movement.isBoardPositionEqual(lastMove.dest, { row: r, col: c });
 
         if (isCellLastSrc || isCellLastDest) {
-          ctx.fillStyle = (r + c) % 2 ? darkSquareHighlightColour: lightSquareHighlightColour;
+          ctx.fillStyle = (r + c) % 2 ? darkSquareHighlightColour : lightSquareHighlightColour;
         } else {
           ctx.fillStyle = (r + c) % 2 ? darkSquareColour : lightSquareColour;
         }
