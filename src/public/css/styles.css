@@ -3,6 +3,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 #board-container {
@@ -15,6 +16,10 @@ body {
   width: 100%;
   text-align: center;
   margin-top: 1vh;
+}
+
+#txt-turn-info {
+  margin: 0px 4px;
 }
 
 .btn {

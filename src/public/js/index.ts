@@ -33,6 +33,7 @@ let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
 let newGameButton: HTMLButtonElement;
 let questionButton: HTMLButtonElement;
+let turnInfoText: HTMLSpanElement;
 
 function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
   const ctx = canvas.getContext('2d');
@@ -221,7 +222,12 @@ function onQuestionButtonClick(event: Event) {
 }
 
 async function onPlayerPieceTurnEnd() {
+  updateInfoText();
   await cpuMove();
+}
+
+function updateInfoText() {
+  turnInfoText.innerText = `${movement.getPieceName(board.turn)} to move`;
 }
 
 function checkForWinner() {
@@ -260,6 +266,7 @@ async function cpuMove() {
   }
   drawBoard();
   checkForWinner();
+  updateInfoText();
   enableBoardInteraction(true);
   enableNewGameButton(true);
 }
@@ -281,6 +288,7 @@ function attachEventListeners(): void {
 function newGame(): void {
   enableEndTurnButton(false);
   movement.initBoard(board);
+  updateInfoText();
   cpu.onStart(board);
   drawBoard();
   if (board.turn === movement.cpuPiece) {
@@ -288,11 +296,16 @@ function newGame(): void {
   }
 }
 
-function start(): void {
+function initPageElements() {
   canvas = <HTMLCanvasElement> document.getElementById('board');
   endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
   newGameButton = <HTMLButtonElement> document.getElementById('btn-new-game');
   questionButton = <HTMLButtonElement> document.getElementById('btn-question');
+  turnInfoText = <HTMLButtonElement> document.getElementById('txt-turn-info');
+}
+
+function start(): void {
+  initPageElements();
   attachEventListeners();
   newGame();
 }
