@@ -29,6 +29,8 @@ export interface Move {
 export const playerPiece = Piece.WHITE;
 export const cpuPiece = Piece.BLACK;
 
+export const gameRules = `The goal of the game is to recreate your opponents starting position. On your turn, you can only move a single piece. This piece can either move to an adjacent square, after which your turn ends, or it can hop over an individual adjacent piece. You can perform as many hops as you like on your turn.`;
+
 export function manhattenDistance(src: BoardPosition, dest: BoardPosition): number {
   return Math.abs(src.col - dest.col) + Math.abs(src.row - dest.row);
 }

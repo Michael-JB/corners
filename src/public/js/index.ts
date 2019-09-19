@@ -32,7 +32,7 @@ const draggingPiece: {
 let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
 let newGameButton: HTMLButtonElement;
-
+let questionButton: HTMLButtonElement;
 
 function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
   const ctx = canvas.getContext('2d');
@@ -118,6 +118,7 @@ function isCellEmpty(cell: movement.Cell): boolean {
 function onPlayerPieceMove(move: movement.Move): void {
   if (movement.isValidMove(board, move, movement.playerPiece)) {
     movement.performMove(board, move);
+    enableEndTurnButton(true);
     drawBoard();
     checkForWinner();
     if (board.turn != movement.playerPiece) {
@@ -215,6 +216,10 @@ function onNewGameButtonClick(event: Event) {
   newGame();
 }
 
+function onQuestionButtonClick(event: Event) {
+  alert(movement.gameRules);
+}
+
 async function onPlayerPieceTurnEnd() {
   await cpuMove();
 }
@@ -257,7 +262,6 @@ async function cpuMove() {
   checkForWinner();
   enableBoardInteraction(true);
   enableNewGameButton(true);
-  enableEndTurnButton(true);
 }
 
 function sleep(duration: number) {
@@ -267,6 +271,7 @@ function sleep(duration: number) {
 function attachEventListeners(): void {
   endTurnButton.addEventListener('click', onEndTurnButtonClick);
   newGameButton.addEventListener('click', onNewGameButtonClick);
+  questionButton.addEventListener('click', onQuestionButtonClick);
 
   canvas.addEventListener('pointerdown', onCanvasPointerPress);
   canvas.addEventListener('pointerup', onCanvasPointerRelease);
@@ -274,6 +279,7 @@ function attachEventListeners(): void {
 }
 
 function newGame(): void {
+  enableEndTurnButton(false);
   movement.initBoard(board);
   cpu.onStart(board);
   drawBoard();
@@ -286,6 +292,7 @@ function start(): void {
   canvas = <HTMLCanvasElement> document.getElementById('board');
   endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
   newGameButton = <HTMLButtonElement> document.getElementById('btn-new-game');
+  questionButton = <HTMLButtonElement> document.getElementById('btn-question');
   attachEventListeners();
   newGame();
 }
