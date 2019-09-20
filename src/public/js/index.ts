@@ -244,7 +244,7 @@ function checkForWinner() {
     }
     drawBoard();
     alert(message);
-    newGame();
+    enableBoardInteraction(false);
   }
 }
 
@@ -287,6 +287,7 @@ function attachEventListeners(): void {
 
 function newGame(): void {
   enableEndTurnButton(false);
+  enableBoardInteraction(true);
   movement.initBoard(board);
   updateInfoText();
   cpu.onStart(board);
