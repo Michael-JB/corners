@@ -121,7 +121,6 @@ function onPlayerPieceMove(move: movement.Move): void {
     movement.performMove(board, move);
     enableEndTurnButton(true);
     drawBoard();
-    checkForWinner();
     if (board.turn != movement.playerPiece) {
       onPlayerPieceTurnEnd();
     }
@@ -223,14 +222,16 @@ function onQuestionButtonClick(event: Event) {
 
 async function onPlayerPieceTurnEnd() {
   updateInfoText();
-  await cpuMove();
+  if (!checkForWinner()) {
+    await cpuMove();
+  }
 }
 
 function updateInfoText() {
   turnInfoText.innerText = `${movement.getPieceName(board.turn)} to move`;
 }
 
-function checkForWinner() {
+function checkForWinner(): boolean {
   const winner = movement.getGameWinner(board);
   if (winner != null) {
     let message;
@@ -245,7 +246,9 @@ function checkForWinner() {
     drawBoard();
     alert(message);
     enableBoardInteraction(false);
+    enableEndTurnButton(false);
   }
+  return winner != null;
 }
 
 async function cpuMove() {
