@@ -9,8 +9,8 @@ This game is served in a free tier Heroku container: https://corners-game.heroku
 ## Usage
 
 - Install Dependencies: `npm install`
-- Build & Run: `npm start`
-- Once server is running, navigate to http://localhost:5000
+- Build: `npm run build`
+- Serve: `npm start`, then navigate to http://localhost:5000
 
 A full NodeJS server is used to allow for easy future integration of server side calculation. Currently the server only serves static files, and calculation is all in the browser.
 
