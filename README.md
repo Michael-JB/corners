@@ -2,6 +2,8 @@
 
 A browser implementation of a traditional Russian board game with a CPU opponent.
 
+![Screenshot](screenshot.png)
+
 ## Try it out
 
 This game is served in a free tier Heroku container: https://corners-game.herokuapp.com.
