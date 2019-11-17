@@ -1,6 +1,8 @@
 import * as movement from "./movement.js";
 import * as cpu from "./cpu.js";
 
+const publicRepositoryURL = 'https://github.com/Michael-JB/corners';
+
 interface CanvasPosition {
   readonly x: number;
   readonly y: number;
@@ -33,6 +35,7 @@ let canvas: HTMLCanvasElement;
 let endTurnButton: HTMLButtonElement;
 let newGameButton: HTMLButtonElement;
 let questionButton: HTMLButtonElement;
+let repositoryButton: HTMLButtonElement;
 let turnInfoText: HTMLSpanElement;
 
 function drawCircle(cp: CanvasPosition, radius: number, fill: string, stroke: string): void {
@@ -220,6 +223,10 @@ function onQuestionButtonClick(event: Event) {
   alert(movement.gameRules);
 }
 
+function onViewRepositoryButtonClick(event: Event) {
+  window.open(publicRepositoryURL, '_blank');
+}
+
 async function onPlayerPieceTurnEnd() {
   updateInfoText();
   if (!checkForWinner()) {
@@ -282,6 +289,7 @@ function attachEventListeners(): void {
   endTurnButton.addEventListener('click', onEndTurnButtonClick);
   newGameButton.addEventListener('click', onNewGameButtonClick);
   questionButton.addEventListener('click', onQuestionButtonClick);
+  repositoryButton.addEventListener('click', onViewRepositoryButtonClick);
 
   canvas.addEventListener('pointerdown', onCanvasPointerPress);
   canvas.addEventListener('pointerup', onCanvasPointerRelease);
@@ -305,6 +313,7 @@ function initPageElements() {
   endTurnButton = <HTMLButtonElement> document.getElementById('btn-end-turn');
   newGameButton = <HTMLButtonElement> document.getElementById('btn-new-game');
   questionButton = <HTMLButtonElement> document.getElementById('btn-question');
+  repositoryButton = <HTMLButtonElement> document.getElementById('btn-repository');
   turnInfoText = <HTMLButtonElement> document.getElementById('txt-turn-info');
 }
 
